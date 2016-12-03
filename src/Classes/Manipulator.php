@@ -27,8 +27,10 @@ class Manipulator {
 		}
 
 		foreach(explode(',',$manipulation_params) as $param){
-			$value = substr($param,1);
-			switch (strtolower($param[0])){
+			$param = explode(':',$param);
+			$key = $param[0];
+			$value = $param[1];
+			switch ($key){
 				case 'w':
 					if(is_numeric(substr($param,-1))){
 						$params['width'] = $value;
@@ -52,8 +54,17 @@ class Manipulator {
 					$params['crop_width'] = $crop_array[0];
 					$params['crop_height'] = $crop_array[1];
 					break;
+				case 'fill':
+					$res_array = explode('x',$value);
+					$params['fill_width'] = $res_array[0];
+					$params['fill_height'] = $res_array[1];
+					break;
+				case 'fit':
+					$res_array = explode('x',$value);
+					$params['fit_width'] = $res_array[0];
+					$params['fit_height'] = $res_array[1];
+					break;
 				case 'q':
-					echo $value;
 					$params['quality'] = $value;
 					break;
 				default:
@@ -89,9 +100,18 @@ class Manipulator {
 			$this->image->process_image()->crop($this->params['crop_width'],$this->params['crop_height']);
 		}
 
+		if(isset($this->params['fill_width'])){
+			$this->image->process_image()->fill($this->params['fill_width'],$this->params['fill_height']);
+		}
+
+		if(isset($this->params['fit_width'])){
+			$this->image->process_image()->fit($this->params['fit_width'],$this->params['fit_height']);
+		}
+
 		$quality = isset($this->params['quality']) ? $this->params['quality'] : '100' ;
+		//print_r( $this->params);
 		if($quality != '100'){
-			$params['content'] = $this->image->process_image()->encode(null ,$quality);
+			$params['content'] = $this->image->process_image()->encode(null ,$quality)->response();
 		}else{
 			$params['content'] = $this->image->process_image()->response();
 		}
