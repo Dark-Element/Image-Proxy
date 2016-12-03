@@ -28,10 +28,10 @@ class Manipulator {
 		}
 
 		foreach(explode(',',$manipulation_params) as $param){
-			$value = substr($param,2);
+			$value = substr($param,1);
 			switch (strtolower($param[0])){
 				case 'w':
-					if(is_numeric($param[count($param)-1])){
+					if(is_numeric(substr($param,-1))){
 						$params['width'] = $value;
 						$params['constrain'] = false;
 					}else{
@@ -40,7 +40,7 @@ class Manipulator {
 					}
 					break;
 				case 'h':
-					if(is_numeric($param[count($param)-1])){
+					if(is_numeric(substr($param,-1))){
 						$params['height'] = $value;
 						$params['constrain'] = false;
 					}else{
@@ -75,14 +75,15 @@ class Manipulator {
 				$this->image->process_image()->resize($width,$height);
 			}
 		}
-
-		$format = (isset($this->params['format']) ? $this->params['format'] : explode('/',$this->image->getMime())[1] );
 		$quality = (isset($this->params['quality']) ? $this->params['quality'] : '100' );
 
-		$params['content'] = $this->image->process_image()->encode($format,$quality);
+		if($quality != '100'){
+			$params['content'] = $this->image->process_image()->encode(null ,$quality);
+		}else{
+			$params['content'] = $this->image->process_image()->response();
+		}
 		$params['mime'] = $this->image->getMime();
 		$this->output_image = new Image($params);
-
 		return $this->output_image;
 	}
 

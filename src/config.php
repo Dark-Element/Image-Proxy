@@ -6,4 +6,4 @@
  * Time: 10:41 AM
  */
 
-$driver = 'imagick';
+$driver = 'gd';
