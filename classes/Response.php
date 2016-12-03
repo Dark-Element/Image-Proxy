@@ -13,135 +13,53 @@ use Intervention\Image\ImageManager;
  */
 class Response
 {
-    private $image_url;
-    private $image_content;
-    private $output_header;
-    private $manipulated_image;
-    private $manipulation_params;
-    private $mime_type;
-    private $times;
-
+	private $source_image;
+	private $output_image;
 
     function __construct() {
         $this->auth();
-        //built params
         $this->set_image();
-        $this->set_manipulation_params();
+	    $this->manipulate_image();
+	    $this->set_response();
     }
 
-    public function get_image(){
-        $this->manipulate_image();
-        $args = [
-            'header'=> 'Content-Type: ' . $this->mime_type
-            ];
-        $this->render('Image',$this->manipulated_image,$args);
-    }
+	private function auth(){
+		$authenticator = new \ImageProxy\Auth($_REQUEST);
+		if(!$authenticator->is_authenticated()){
+			$this->render('Error', 'Auth Error: Check your credentials');
+		}
+	}
+
+	private function set_image(){
+		$request = new \ImageProxy\Request($_REQUEST['source_url']);
+		if(count($request->errors) >= 0){
+			return $this->render('Error',json_encode($request->errors));
+		}
+
+		$this->source_image = $request->getSourceImage();
+	}
 
     private function manipulate_image(){
-        $image = null;
-        $manipulator = new ImageManager(array('driver' => 'gd'));
-        try{
-            $image = $manipulator->make($this->image_content);
-        }catch(\Exception $e){
-            $this->render('Error',$e->getMessage());
-        }
+        $manipulator = new \ImageProxy\Manipulator($this->source_image,$_REQUEST['params']);
+	    if(count($manipulator->errors) >= 0){
+		    return $this->render('Error',json_encode($manipulator->errors));
+	    }
 
-        if(!isset($this->mime_type)){
-            $this->mime_type = $image->mime();
-        }
+	    $this->output_image = $manipulator->getOutputImage();
 
-        if(isset($this->manipulation_params['width']) || isset($this->manipulation_params['height'])){
-            $width = null;
-            $height = null;
-            if(isset($this->manipulation_params['width'])){
-                $width = $this->manipulation_params['width'];
-            }
-
-            if(isset($this->manipulation_params['height'])){
-                $height = $this->manipulation_params['height'];
-            }
-            if($this->manipulation_params['constrain']){
-                $image->resize($width,$height,function ($constraint) {
-                    $constraint->aspectRatio();
-                });
-            }else{
-                $image->resize($width,$height);
-            }
-        }
-
-        $format = (isset($this->manipulation_params['format']) ? $this->manipulation_params['format'] : explode('/',$this->mime_type)[1] );
-        $quality = (isset($this->manipulation_params['quality']) ? $this->manipulation_params['quality'] : '100' );
-
-        $this->manipulated_image = $image->encode($format,$quality);
     }
 
-    function set_image(){
-        try{
-            if(!isset($_REQUEST['source_url'])) {
-                $this->render('Error', 'No source image defined');
-            }
-            $this->image_url = $_REQUEST['source_url'];
-            $this->image_content = file_get_contents($this->image_url);
-
-        }catch (\Exception $e){
-            $this->render('Error',$e->getMessage());
-        }
-    }
-
-    function set_manipulation_params(){
-        $params = [];
-        if(!isset($_REQUEST['params'])){
-            $manipulator = new ImageManager(array('driver' => 'imagick'));
-            try{
-                $image = $manipulator->make($this->image_content);
-            }catch(\Exception $e){
-                $this->render('Error',$e->getMessage());
-            }
-            $args['header'] = 'Content-Type: '. $image->mime()  ;
-            $this->render('Image',$this->image_content,$args);
-        }
-        foreach(explode(',',$_REQUEST['params']) as $param){
-            $value = substr($param,2);
-            switch (strtolower($param[0])){
-                case 'w':
-                    if(is_numeric($param[count($param)-1])){
-                        $params['width'] = $value;
-                        $params['constrain'] = false;
-                    }else{
-                        $params['width'] = substr($value,0,-1);
-                        $params['constrain'] = true;
-                    }
-                    break;
-                case 'h':
-                    if(is_numeric($param[count($param)-1])){
-                        $params['height'] = $value;
-                        $params['constrain'] = false;
-                    }else{
-                        $params['height'] = substr($value,0,-1);
-                        $params['constrain'] = true;
-                    }
-                    break;
-                case 'q':
-                    $params['quality'] = $value;
-                    break;
-                case 'f':
-                    $this->mime_type = $value;
-                    $params['format'] = $value;
-                    break;
-            }
-        }
+	private function set_response(){
+		$args = [
+			'header'=> 'Content-Type: ' . $this->output_image->getMime()
+		];
+		$this->render('Image',$this->output_image->getContent(),$args);
+	}
 
 
-        $this->manipulation_params = $params;
-    }
 
 
-    private function auth(){
-        $start  = microtime();
-        //$this->render('Error', 'Auth Error: Check your credentials');
-        $this->times['auth'] = microtime() - $start;
-        return true;
-    }
+
 
     private function render($type,$msg,$args = array() ){
         switch ($type) {

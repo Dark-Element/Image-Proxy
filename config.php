@@ -5,3 +5,5 @@
  * Date: 8/27/16
  * Time: 10:41 AM
  */
+
+$driver = 'gd';
