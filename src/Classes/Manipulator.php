@@ -22,7 +22,6 @@ class Manipulator {
 
 	private function set_params($manipulation_params){
 		$params = [];
-
 		if(!isset($manipulation_params) || $manipulation_params == '' ){
 			return false;
 		}
@@ -48,9 +47,18 @@ class Manipulator {
 						$params['constrain'] = true;
 					}
 					break;
+				case 'c':
+					$crop_array = explode('x',$value);
+					$params['crop_width'] = $crop_array[0];
+					$params['crop_height'] = $crop_array[1];
+					break;
 				case 'q':
+					echo $value;
 					$params['quality'] = $value;
 					break;
+				default:
+					break;
+
 			}
 		}
 		$this->params = $params;
@@ -75,13 +83,19 @@ class Manipulator {
 				$this->image->process_image()->resize($width,$height);
 			}
 		}
-		$quality = (isset($this->params['quality']) ? $this->params['quality'] : '100' );
 
+
+		if(isset($this->params['crop_width'])){
+			$this->image->process_image()->crop($this->params['crop_width'],$this->params['crop_height']);
+		}
+
+		$quality = isset($this->params['quality']) ? $this->params['quality'] : '100' ;
 		if($quality != '100'){
 			$params['content'] = $this->image->process_image()->encode(null ,$quality);
 		}else{
 			$params['content'] = $this->image->process_image()->response();
 		}
+
 		$params['mime'] = $this->image->getMime();
 		$this->output_image = new Image($params);
 		return $this->output_image;

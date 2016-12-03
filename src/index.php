@@ -9,7 +9,5 @@
 require 'config.php';
 require 'Classes/Autoloader.php';
 require '../vendor/autoload.php';
-use Intervention\Image\ImageManager;
-
 
 $response = new Response();
