@@ -6,8 +6,6 @@
  * Time: 10:43 AM
  */
 
-use Intervention\Image\ImageManager;
-
 /**
  * @property array manipulation_params
  */
@@ -24,32 +22,31 @@ class Response
     }
 
 	private function auth(){
-		$authenticator = new \ImageProxy\Auth($_REQUEST);
+		$authenticator = new Auth($_REQUEST);
 		if(!$authenticator->is_authenticated()){
 			$this->render('Error', 'Auth Error: Check your credentials');
 		}
 	}
 
 	private function set_image(){
-		$request = new \ImageProxy\Request($_REQUEST['source_url']);
-		if(count($request->errors) >= 0){
+		$request = new Request($_REQUEST['source_url']);
+		if(count($request->errors) > 0){
 			return $this->render('Error',json_encode($request->errors));
 		}
-
 		$this->source_image = $request->getSourceImage();
 	}
 
     private function manipulate_image(){
-        $manipulator = new \ImageProxy\Manipulator($this->source_image,$_REQUEST['params']);
-	    if(count($manipulator->errors) >= 0){
+    	$params= isset($_REQUEST['params']) ? $_REQUEST['params'] : '';
+        $manipulator = new Manipulator($this->source_image,$params);
+	    if(count($manipulator->errors) > 0){
 		    return $this->render('Error',json_encode($manipulator->errors));
 	    }
-
 	    $this->output_image = $manipulator->getOutputImage();
-
     }
 
 	private function set_response(){
+
 		$args = [
 			'header'=> 'Content-Type: ' . $this->output_image->getMime()
 		];

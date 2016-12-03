@@ -6,9 +6,6 @@
  * Time: 09:03
  */
 
-namespace ImageProxy;
-
-
 class Manipulator {
 
 	private $params;
@@ -26,7 +23,7 @@ class Manipulator {
 	private function set_params($manipulation_params){
 		$params = [];
 
-		if(!isset($manipulation_params)){
+		if(!isset($manipulation_params) || $manipulation_params == '' ){
 			return false;
 		}
 
@@ -83,7 +80,7 @@ class Manipulator {
 		$quality = (isset($this->params['quality']) ? $this->params['quality'] : '100' );
 
 		$params['content'] = $this->image->process_image()->encode($format,$quality);
-		$params['mime'] = $this->image->getMime()[0].'/'.$this->image->getMime()[1];
+		$params['mime'] = $this->image->getMime();
 		$this->output_image = new Image($params);
 
 		return $this->output_image;

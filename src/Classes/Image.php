@@ -6,7 +6,6 @@
  * Time: 09:41
  */
 
-namespace ImageProxy;
 use Intervention\Image\ImageManager;
 
 class Image {
@@ -17,17 +16,17 @@ class Image {
 	private $mime;
 	private $content;
 	private $manipulator;
-	private $proccesing_image;
+	private $procesing_image;
 	private $driver;
 	public  $errors = [];
 
 	public function __construct($params) {
 		global $driver;
 		$this->driver     = $driver;
-		$this->source_url = $params['source_url'];
-		$this->width      = $params['width'];
-		$this->height     = $params['height'];
-		$this->mime       = $params['mime'];
+		@$this->source_url= $params['source_url'];
+		@$this->width     = $params['width'];
+		@$this->height    = $params['height'];
+		@$this->mime      = $params['mime'];
 		$this->content    = $params['content'];
 	}
 
@@ -75,19 +74,14 @@ class Image {
 		return $this->content;
 	}
 
-	private function get_manipulator(): ImageManager {
+	public function process_image(): \Intervention\Image\Image {
 		global $driver;
 		if($this->manipulator != null){
 			return $this->manipulator;
 		}
 		$this->manipulator = new  ImageManager(array('driver' => $driver));
-	}
-
-	public function process_image(): \Intervention\Image\Image {
-		if($this->proccesing_image == null){
-			$this->proccesing_image = $this->get_manipulator()->make($this->content);
-		}
-		return $this->proccesing_image;
+		$this->manipulator = $this->manipulator->make($this->content);
+		return $this->manipulator;
 	}
 
 }

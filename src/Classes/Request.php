@@ -6,8 +6,6 @@
  * Time: 09:02
  */
 
-namespace ImageProxy;
-
 class Request {
 
 	private $source_image;
@@ -24,7 +22,7 @@ class Request {
 	private function get_remote_image($url){
 		try{
 			//caching goes here
-			$params['conetent'] = file_get_contents($url);
+			$params['content'] = file_get_contents($url);
 			$params['source_url'] = $url;
 			$this->source_image = new Image($params);
 			return $this->source_image;

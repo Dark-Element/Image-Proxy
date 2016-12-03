@@ -6,9 +6,6 @@
  * Time: 09:03
  */
 
-namespace ImageProxy;
-
-
 class Auth {
 	private $authenticated;
 
@@ -22,7 +19,6 @@ class Auth {
 	}
 
 	private function authenticate($params){
-		$params;
 		$start  = microtime();
 		$this->times['auth'] = microtime() - $start;
 		$this->authenticated = true;
