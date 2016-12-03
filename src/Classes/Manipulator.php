@@ -32,7 +32,7 @@ class Manipulator {
 			$value = $param[1];
 			switch ($key){
 				case 'w':
-					if(is_numeric(substr($param,-1))){
+					if(is_numeric(substr($value,-1))){
 						$params['width'] = $value;
 						$params['constrain'] = false;
 					}else{
@@ -41,7 +41,7 @@ class Manipulator {
 					}
 					break;
 				case 'h':
-					if(is_numeric(substr($param,-1))){
+					if(is_numeric(substr($value,-1))){
 						$params['height'] = $value;
 						$params['constrain'] = false;
 					}else{
